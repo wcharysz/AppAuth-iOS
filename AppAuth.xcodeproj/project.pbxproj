@@ -13,6 +13,16 @@
 		06C19E9B22B474A200C19CE1 /* OIDEndSessionResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = CF6431F31F228A980075B6B5 /* OIDEndSessionResponse.m */; };
 		06C19E9C22B474A600C19CE1 /* OIDEndSessionRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = CF37C06B1F1FC21A00662E41 /* OIDEndSessionRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		06C19E9D22B474AD00C19CE1 /* OIDEndSessionRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = CF37C06C1F1FC21A00662E41 /* OIDEndSessionRequest.m */; };
+		2716186E2D884711008AF26C /* OIDAuthorizationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */; };
+		2716186F2D884711008AF26C /* OIDAuthorizationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */; };
+		271618702D884711008AF26C /* OIDAuthorizationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */; };
+		271618712D884711008AF26C /* OIDAuthorizationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */; };
+		271618722D884711008AF26C /* OIDAuthorizationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */; };
+		271618732D884711008AF26C /* OIDAuthorizationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */; };
+		271618742D884711008AF26C /* OIDAuthorizationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */; };
+		271618752D884711008AF26C /* OIDAuthorizationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */; };
+		271618762D884711008AF26C /* OIDAuthorizationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */; };
+		271618772D884711008AF26C /* OIDAuthorizationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */; };
 		2D47AAE1249A87020059B5A4 /* OIDTVAuthorizationResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D47AAD8249A87010059B5A4 /* OIDTVAuthorizationResponse.m */; };
 		2D47AAE4249A87020059B5A4 /* OIDTVServiceConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D47AADA249A87010059B5A4 /* OIDTVServiceConfiguration.m */; };
 		2D47AAE8249A87020059B5A4 /* OIDTVAuthorizationRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D47AADD249A87010059B5A4 /* OIDTVAuthorizationRequest.m */; };
@@ -703,6 +713,11 @@
 		039697441FA8258D003D1FB2 /* OIDURLSessionProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OIDURLSessionProvider.h; sourceTree = "<group>"; };
 		039697451FA8258D003D1FB2 /* OIDURLSessionProvider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OIDURLSessionProvider.m; sourceTree = "<group>"; };
 		0396974C1FA827AD003D1FB2 /* OIDURLSessionProviderTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OIDURLSessionProviderTests.m; sourceTree = "<group>"; };
+		271618692D884711008AF26C /* AppAuth-iOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AppAuth-iOS-Bridging-Header.h"; sourceTree = "<group>"; };
+		2716186A2D884711008AF26C /* AppAuth-macOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AppAuth-macOS-Bridging-Header.h"; sourceTree = "<group>"; };
+		2716186B2D884711008AF26C /* AppAuth-tvOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AppAuth-tvOS-Bridging-Header.h"; sourceTree = "<group>"; };
+		2716186C2D884711008AF26C /* AppAuth-watchOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AppAuth-watchOS-Bridging-Header.h"; sourceTree = "<group>"; };
+		2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OIDAuthorizationSession.swift; sourceTree = "<group>"; };
 		2D47AAD8249A87010059B5A4 /* OIDTVAuthorizationResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OIDTVAuthorizationResponse.m; sourceTree = "<group>"; };
 		2D47AAD9249A87010059B5A4 /* OIDTVAuthorizationRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OIDTVAuthorizationRequest.h; sourceTree = "<group>"; };
 		2D47AADA249A87010059B5A4 /* OIDTVServiceConfiguration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OIDTVServiceConfiguration.m; sourceTree = "<group>"; };
@@ -997,6 +1012,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		271618682D8846C9008AF26C /* SwiftUI */ = {
+			isa = PBXGroup;
+			children = (
+				2716186D2D884711008AF26C /* OIDAuthorizationSession.swift */,
+				271618692D884711008AF26C /* AppAuth-iOS-Bridging-Header.h */,
+				2716186A2D884711008AF26C /* AppAuth-macOS-Bridging-Header.h */,
+				2716186B2D884711008AF26C /* AppAuth-tvOS-Bridging-Header.h */,
+				2716186C2D884711008AF26C /* AppAuth-watchOS-Bridging-Header.h */,
+			);
+			path = SwiftUI;
+			sourceTree = "<group>";
+		};
 		2D47AAD7249A86E30059B5A4 /* AppAuthTV */ = {
 			isa = PBXGroup;
 			children = (
@@ -1271,6 +1298,7 @@
 		8A9B9D632456227D0055353E /* AppAuth */ = {
 			isa = PBXGroup;
 			children = (
+				271618682D8846C9008AF26C /* SwiftUI */,
 				7322C49A2BA20BEF00DF9B2F /* Resources */,
 				340DAE241D581FE700EC285B /* macOS */,
 				F6F60FAF1D2BFEF000325CB3 /* iOS */,
@@ -1864,13 +1892,16 @@
 					2D9385B624B37CAD009A12D7 = {
 						CreatedOnToolsVersion = 11.5;
 						DevelopmentTeam = AUX79W8H33;
+						LastSwiftMigration = 1620;
 						ProvisioningStyle = Automatic;
 					};
 					340DAE4D1D58216A00EC285B = {
 						CreatedOnToolsVersion = 7.3.1;
+						LastSwiftMigration = 1620;
 					};
 					340E737B1C5D819B0076B1F6 = {
 						CreatedOnToolsVersion = 7.2;
+						LastSwiftMigration = 1620;
 					};
 					341741EF1C5D8283000EF209 = {
 						CreatedOnToolsVersion = 7.2;
@@ -1886,10 +1917,15 @@
 					};
 					341E707D1DE18744004353C1 = {
 						CreatedOnToolsVersion = 8.2;
+						LastSwiftMigration = 1620;
 						ProvisioningStyle = Automatic;
+					};
+					342F42842177B1FC00574F24 = {
+						LastSwiftMigration = 1620;
 					};
 					343AAA531E83463400F9D36E = {
 						CreatedOnToolsVersion = 8.2.1;
+						LastSwiftMigration = 1620;
 						ProvisioningStyle = Automatic;
 					};
 					343AAA5B1E83463400F9D36E = {
@@ -1898,10 +1934,12 @@
 					};
 					343AAA981E83487200F9D36E = {
 						CreatedOnToolsVersion = 8.2.1;
+						LastSwiftMigration = 1620;
 						ProvisioningStyle = Automatic;
 					};
 					343AAAA51E83489A00F9D36E = {
 						CreatedOnToolsVersion = 8.2.1;
+						LastSwiftMigration = 1620;
 						ProvisioningStyle = Automatic;
 					};
 					343AAAAD1E83489A00F9D36E = {
@@ -1910,6 +1948,7 @@
 					};
 					343AAAC11E8348A900F9D36E = {
 						CreatedOnToolsVersion = 8.2.1;
+						LastSwiftMigration = 1620;
 						ProvisioningStyle = Automatic;
 					};
 					343AAAC91E8348AA00F9D36E = {
@@ -1918,6 +1957,7 @@
 					};
 					347423F51E7F4B5600D3E6D6 = {
 						CreatedOnToolsVersion = 8.2.1;
+						LastSwiftMigration = 1620;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -2118,6 +2158,7 @@
 				2D93864C24B38829009A12D7 /* OIDURLQueryComponent.m in Sources */,
 				2D93863024B38826009A12D7 /* OIDEndSessionResponse.m in Sources */,
 				2D93865224B38840009A12D7 /* OIDTVServiceConfiguration.m in Sources */,
+				271618772D884711008AF26C /* OIDAuthorizationSession.swift in Sources */,
 				2D93861E24B3881B009A12D7 /* OIDAuthorizationService.m in Sources */,
 				2D93863C24B38827009A12D7 /* OIDResponseTypes.m in Sources */,
 				2D93863424B38826009A12D7 /* OIDRegistrationResponse.m in Sources */,
@@ -2154,6 +2195,7 @@
 				340DAE581D5821A100EC285B /* OIDExternalUserAgentMac.m in Sources */,
 				340DAE5A1D5821AB00EC285B /* OIDAuthorizationRequest.m in Sources */,
 				347423E41E7F3C4000D3E6D6 /* OIDAuthorizationResponse.m in Sources */,
+				2716186F2D884711008AF26C /* OIDAuthorizationSession.swift in Sources */,
 				34A6632E1E871DD40060B664 /* OIDIDToken.m in Sources */,
 				340DAE591D5821A100EC285B /* OIDAuthState+Mac.m in Sources */,
 				34AF73671FB4E4B00022335F /* OIDURLSessionProvider.m in Sources */,
@@ -2189,6 +2231,7 @@
 				341741E11C5D8243000EF209 /* OIDFieldMapping.m in Sources */,
 				039697461FA8258D003D1FB2 /* OIDURLSessionProvider.m in Sources */,
 				341741DF1C5D8243000EF209 /* OIDError.m in Sources */,
+				271618702D884711008AF26C /* OIDAuthorizationSession.swift in Sources */,
 				341741DB1C5D8243000EF209 /* OIDAuthorizationRequest.m in Sources */,
 				60140F801DE4344200DA0DC3 /* OIDRegistrationResponse.m in Sources */,
 				340DAECB1D582DE100EC285B /* OIDAuthorizationService+IOS.m in Sources */,
@@ -2296,6 +2339,7 @@
 				341E709A1DE18796004353C1 /* OIDAuthorizationService.m in Sources */,
 				341310D91E6F944D00D5DEE5 /* OIDResponseTypes.m in Sources */,
 				341310E11E6F944D00D5DEE5 /* OIDURLQueryComponent.m in Sources */,
+				271618712D884711008AF26C /* OIDAuthorizationSession.swift in Sources */,
 				CF37C0701F1FC21A00662E41 /* OIDEndSessionRequest.m in Sources */,
 				2D47AAE1249A87020059B5A4 /* OIDTVAuthorizationResponse.m in Sources */,
 				341310D41E6F944D00D5DEE5 /* OIDErrorUtilities.m in Sources */,
@@ -2322,6 +2366,7 @@
 				342F42912177B1FC00574F24 /* OIDTokenUtilities.m in Sources */,
 				342F42922177B1FC00574F24 /* OIDServiceDiscovery.m in Sources */,
 				342F42932177B1FC00574F24 /* OIDTokenRequest.m in Sources */,
+				271618762D884711008AF26C /* OIDAuthorizationSession.swift in Sources */,
 				342F42962177B1FC00574F24 /* OIDServiceConfiguration.m in Sources */,
 				342F42972177B1FC00574F24 /* OIDRegistrationResponse.m in Sources */,
 				342F42982177B1FC00574F24 /* OIDURLSessionProvider.m in Sources */,
@@ -2363,6 +2408,7 @@
 				343AAA891E83478900F9D36E /* OIDRegistrationResponse.m in Sources */,
 				34AF736A1FB4E4B30022335F /* OIDURLSessionProvider.m in Sources */,
 				343AAA8D1E83478900F9D36E /* OIDScopes.m in Sources */,
+				271618732D884711008AF26C /* OIDAuthorizationSession.swift in Sources */,
 				343AAA8E1E83478900F9D36E /* OIDScopeUtilities.m in Sources */,
 				343AAA8B1E83478900F9D36E /* OIDGrantTypes.m in Sources */,
 				343AAA8A1E83478900F9D36E /* OIDRegistrationRequest.m in Sources */,
@@ -2413,6 +2459,7 @@
 				343AAB731E8349B000F9D36E /* OIDRegistrationResponse.m in Sources */,
 				343AAB701E8349B000F9D36E /* OIDError.m in Sources */,
 				A6DEAB8B2017A7160022AC32 /* OIDEndSessionRequest.m in Sources */,
+				271618742D884711008AF26C /* OIDAuthorizationSession.swift in Sources */,
 				343AAB7B1E8349B000F9D36E /* OIDTokenRequest.m in Sources */,
 				343AAB7C1E8349B000F9D36E /* OIDTokenResponse.m in Sources */,
 				A6DEAB872017A70B0022AC32 /* OIDEndSessionResponse.m in Sources */,
@@ -2444,6 +2491,7 @@
 				343AAB5F1E8349B000F9D36E /* OIDRegistrationResponse.m in Sources */,
 				343AAB5C1E8349B000F9D36E /* OIDError.m in Sources */,
 				A6DEAB8C2017A7160022AC32 /* OIDEndSessionRequest.m in Sources */,
+				271618752D884711008AF26C /* OIDAuthorizationSession.swift in Sources */,
 				343AAB671E8349B000F9D36E /* OIDTokenRequest.m in Sources */,
 				343AAB681E8349B000F9D36E /* OIDTokenResponse.m in Sources */,
 				A6DEAB882017A70B0022AC32 /* OIDEndSessionResponse.m in Sources */,
@@ -2509,6 +2557,7 @@
 				343AAADB1E83493D00F9D36E /* OIDExternalUserAgentMac.m in Sources */,
 				343AAB471E8349AF00F9D36E /* OIDClientMetadataParameters.m in Sources */,
 				34A663341E871DD40060B664 /* OIDIDToken.m in Sources */,
+				2716186E2D884711008AF26C /* OIDAuthorizationSession.swift in Sources */,
 				343AAB461E8349AF00F9D36E /* OIDAuthState.m in Sources */,
 				34AF736D1FB4E4B40022335F /* OIDURLSessionProvider.m in Sources */,
 				343AAB561E8349AF00F9D36E /* OIDURLQueryComponent.m in Sources */,
@@ -2559,6 +2608,7 @@
 				347424071E7F4BA000D3E6D6 /* OIDRegistrationResponse.m in Sources */,
 				347424041E7F4BA000D3E6D6 /* OIDError.m in Sources */,
 				3474240F1E7F4BA000D3E6D6 /* OIDTokenRequest.m in Sources */,
+				271618722D884711008AF26C /* OIDAuthorizationSession.swift in Sources */,
 				347424101E7F4BA000D3E6D6 /* OIDTokenResponse.m in Sources */,
 				A6DEAB852017A7050022AC32 /* OIDEndSessionResponse.m in Sources */,
 				3474240D1E7F4BA000D3E6D6 /* OIDServiceConfiguration.m in Sources */,
@@ -2678,6 +2728,7 @@
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_STYLE = Automatic;
@@ -2701,6 +2752,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 9.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -2714,6 +2767,7 @@
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_STYLE = Automatic;
@@ -2732,6 +2786,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 9.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -2743,11 +2798,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/AppAuth/SwiftUI/AppAuth-macOS-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
@@ -2755,11 +2814,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/AppAuth/SwiftUI/AppAuth-macOS-Bridging-Header.h";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
@@ -2888,16 +2950,23 @@
 		340E73861C5D819B0076B1F6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/AppAuth/SwiftUI/AppAuth-iOS-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
 		340E73871C5D819B0076B1F6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/AppAuth/SwiftUI/AppAuth-iOS-Bridging-Header.h";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
@@ -3000,12 +3069,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/AppAuth/SwiftUI/AppAuth-tvOS-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 				TVOS_DEPLOYMENT_TARGET = 9.0;
 			};
 			name = Debug;
@@ -3014,12 +3087,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/AppAuth/SwiftUI/AppAuth-tvOS-Bridging-Header.h";
+				SWIFT_VERSION = 6.0;
 				TVOS_DEPLOYMENT_TARGET = 9.0;
 			};
 			name = Release;
@@ -3029,6 +3105,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
@@ -3044,6 +3121,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -3055,6 +3134,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
@@ -3070,6 +3150,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = YES;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -3080,6 +3161,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
@@ -3095,6 +3177,8 @@
 				PRODUCT_NAME = AppAuth;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -3105,6 +3189,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
@@ -3120,6 +3205,7 @@
 				PRODUCT_NAME = AppAuth;
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = YES;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -3159,6 +3245,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
@@ -3173,6 +3260,8 @@
 				PRODUCT_NAME = AppAuth;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -3185,6 +3274,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
@@ -3199,6 +3289,7 @@
 				PRODUCT_NAME = AppAuth;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -3210,6 +3301,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
@@ -3224,6 +3316,8 @@
 				PRODUCT_NAME = AppAuth;
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 9.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -3235,6 +3329,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
@@ -3249,6 +3344,7 @@
 				PRODUCT_NAME = AppAuth;
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 9.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -3290,6 +3386,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
@@ -3306,6 +3403,8 @@
 				PRODUCT_NAME = AppAuth;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -3315,6 +3414,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
@@ -3331,6 +3431,7 @@
 				PRODUCT_NAME = AppAuth;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -3372,11 +3473,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/AppAuth/SwiftUI/AppAuth-watchOS-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 				WATCHOS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
@@ -3385,11 +3490,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/AppAuth/SwiftUI/AppAuth-watchOS-Bridging-Header.h";
+				SWIFT_VERSION = 6.0;
 				WATCHOS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
