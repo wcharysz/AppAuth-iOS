@@ -42,6 +42,7 @@
 #import "OIDURLSessionProvider.h"
 #import "OIDEndSessionRequest.h"
 #import "OIDEndSessionResponse.h"
+#import "AppAuth-Swift.h"
 
 #if TARGET_OS_TV
 #elif TARGET_OS_WATCH
