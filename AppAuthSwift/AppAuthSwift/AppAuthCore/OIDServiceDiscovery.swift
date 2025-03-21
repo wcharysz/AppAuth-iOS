@@ -8,12 +8,12 @@ import Foundation
 
 /// Represents an OpenID Connect 1.0 Discovery Document
 /// See: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-public struct OIDServiceDiscovery {
+public struct OIDServiceDiscovery: Codable {
     
     // MARK: - Properties
     
     /// The decoded OpenID Connect 1.0 Discovery Document as a dictionary
-    public let discoveryDictionary: [String: Codable]
+    public let discoveryDictionary: [String: String]
     
     /// REQUIRED. URL using the https scheme with no query or fragment component that the OP
     /// asserts as its Issuer Identifier
@@ -74,55 +74,39 @@ public struct OIDServiceDiscovery {
     /// Creates a new ServiceDiscovery instance from JSON
     /// - Parameter json: JSON string containing the discovery document
     /// - Throws: Error if JSON is invalid or required fields are missing
-    ///
-    ///
-    ///
-    ///
-
     
-    /*
     public init(json: String) throws {
         guard let jsonData = json.data(using: .utf8) else {
             throw ServiceDiscoveryError.invalidJSON
         }
-        //try self.init(jsonData: jsonData)
+        try self.init(jsonData: jsonData)
     }
-     */
+
     
     /// Creates a new ServiceDiscovery instance from JSON Data
     /// - Parameter jsonData: JSON data containing the discovery document
     /// - Throws: Error if JSON is invalid or required fields are missing
     //
     
-    /*
+    
     public init(jsonData: Data) throws {
         let decoder = JSONDecoder()
         self = try decoder.decode(OIDServiceDiscovery.self, from: jsonData)
     }
-     */
     
     /// Creates a new ServiceDiscovery instance from a dictionary
     /// - Parameter dictionary: Dictionary containing the discovery document
     /// - Throws: Error if required fields are missing
     ///
-    
-    /*
-    public init(dictionary: [String: Codable]) throws {
+    public init(dictionary: [String: String]) throws {
         // Implement validation and initialization logic
         guard Self.dictionaryHasRequiredFields(dictionary) else {
             throw ServiceDiscoveryError.missingRequiredFields
         }
         
-        self.discoveryDictionary = dictionary
-        // Initialize all properties from dictionary
-        guard let issuerString = dictionary["issuer"] as? String,
-              let issuer = URL(string: issuerString) else {
-            throw ServiceDiscoveryError.invalidURL("issuer")
-        }
-        self.issuer = issuer
-        // ... Initialize other properties
+        let data = try JSONSerialization.data(withJSONObject: dictionary)
+        try self.init(jsonData: data)
     }
-     */
 }
 
 // MARK: - Error Handling
@@ -131,6 +115,7 @@ public enum ServiceDiscoveryError: Error {
     case invalidJSON
     case missingRequiredFields
     case invalidURL(String)
+    case invalidField(String)
 }
 
 // MARK: - Private Helpers
