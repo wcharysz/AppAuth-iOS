@@ -1,0 +1,181 @@
+import SwiftUI
+import WebKit
+
+/// A SwiftUI view that presents the OAuth 2.0 authorization flow in an in-app WebView.
+///
+/// Uses the iOS 26 WebKit SwiftUI API (`WebView` + `WebPage`) to display
+/// the provider's login/consent page and intercept the redirect.
+///
+/// Usage:
+/// ```swift
+/// AuthorizationWebView(request: authRequest) { result in
+///     switch result {
+///     case .success(let response):
+///         // Exchange code for tokens
+///     case .failure(let error):
+///         // Handle error
+///     }
+/// }
+/// ```
+public struct AuthorizationWebView: View {
+    private let request: AuthorizationRequest
+    private let onCompletion: @MainActor (Result<AuthorizationResponse, AuthError>) -> Void
+
+    @State private var page = WebPage()
+    @State private var isLoading = true
+    @State private var hasCompleted = false
+
+    public init(
+        request: AuthorizationRequest,
+        onCompletion: @escaping @MainActor (Result<AuthorizationResponse, AuthError>) -> Void
+    ) {
+        self.request = request
+        self.onCompletion = onCompletion
+    }
+
+    public var body: some View {
+        ZStack {
+            WebView(page)
+                .ignoresSafeArea(.container, edges: .bottom)
+                .onChange(of: page.url) { _, newURL in
+                    guard let newURL, !hasCompleted else { return }
+                    checkForRedirect(url: newURL)
+                }
+
+            if page.isLoading {
+                ProgressView()
+                    .controlSize(.large)
+            }
+        }
+        .task {
+            let url = request.authorizationURL
+            page.load(URLRequest(url: url))
+        }
+    }
+
+    private func checkForRedirect(url: URL) {
+        guard isRedirectURL(url) else { return }
+        hasCompleted = true
+
+        do {
+            let response = try AuthorizationResponse.from(redirectURL: url, request: request)
+            onCompletion(.success(response))
+        } catch let error as AuthError {
+            onCompletion(.failure(error))
+        } catch {
+            onCompletion(.failure(.unexpected(error.localizedDescription)))
+        }
+    }
+
+    private func isRedirectURL(_ url: URL) -> Bool {
+        let redirectScheme = request.redirectURL.scheme?.lowercased()
+        let redirectHost = request.redirectURL.host?.lowercased()
+        let redirectPath = request.redirectURL.path
+
+        let urlScheme = url.scheme?.lowercased()
+        let urlHost = url.host?.lowercased()
+        let urlPath = url.path
+
+        if urlScheme == redirectScheme && urlHost == redirectHost && urlPath == redirectPath {
+            return true
+        }
+
+        // Also check if the URL starts with the redirect URI (for custom schemes)
+        let redirectBase = request.redirectURL.absoluteString.split(separator: "?").first
+            ?? Substring(request.redirectURL.absoluteString)
+        let urlBase = url.absoluteString.split(separator: "?").first
+            ?? Substring(url.absoluteString)
+
+        return urlBase == redirectBase
+    }
+}
+
+// MARK: - Full Authorization Flow View
+
+/// A convenience SwiftUI view that handles the complete authorization code + token exchange flow.
+///
+/// Usage:
+/// ```swift
+/// AuthorizationFlowView(
+///     request: authRequest,
+///     authState: authState
+/// ) { result in
+///     switch result {
+///     case .success:
+///         // User is authenticated, tokens are in authState
+///     case .failure(let error):
+///         // Handle error
+///     }
+/// }
+/// ```
+public struct AuthorizationFlowView: View {
+    private let request: AuthorizationRequest
+    private let authState: AuthState
+    private let onCompletion: @MainActor (Result<Void, AuthError>) -> Void
+
+    @State private var isExchangingToken = false
+
+    public init(
+        request: AuthorizationRequest,
+        authState: AuthState,
+        onCompletion: @escaping @MainActor (Result<Void, AuthError>) -> Void
+    ) {
+        self.request = request
+        self.authState = authState
+        self.onCompletion = onCompletion
+    }
+
+    public var body: some View {
+        ZStack {
+            AuthorizationWebView(request: request) { result in
+                switch result {
+                case .success(let authResponse):
+                    isExchangingToken = true
+                    Task {
+                        await exchangeCode(authResponse: authResponse)
+                    }
+                case .failure(let error):
+                    authState.setError(error)
+                    onCompletion(.failure(error))
+                }
+            }
+
+            if isExchangingToken {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .controlSize(.large)
+                    Text("Completing sign in...")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func exchangeCode(authResponse: AuthorizationResponse) async {
+        let service = AuthorizationService()
+        do {
+            guard let code = authResponse.authorizationCode else {
+                throw AuthError.unexpected("No authorization code")
+            }
+            let tokenRequest = TokenRequest.exchangeCode(from: authResponse)
+            let tokenResponse = try await service.performTokenRequest(tokenRequest)
+            _ = code // silence unused warning
+            authState.update(authorizationResponse: authResponse, tokenResponse: tokenResponse)
+            isExchangingToken = false
+            onCompletion(.success(()))
+        } catch let error as AuthError {
+            authState.setError(error)
+            isExchangingToken = false
+            onCompletion(.failure(error))
+        } catch {
+            let authError = AuthError.unexpected(error.localizedDescription)
+            authState.setError(authError)
+            isExchangingToken = false
+            onCompletion(.failure(authError))
+        }
+    }
+}
