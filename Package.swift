@@ -4,7 +4,8 @@ import PackageDescription
 let package = Package(
     name: "AppAuth",
     platforms: [
-        .iOS(.v26)
+        .iOS(.v17),
+        .macOS(.v14)
     ],
     products: [
         .library(

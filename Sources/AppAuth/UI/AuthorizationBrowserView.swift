@@ -1,22 +1,15 @@
-// WebKit SwiftUI views (WebView, WebPage) require iOS 26+.
-// Guarded with #if os(iOS) to work around a macOS SDK swiftinterface bug
-// where AsyncSequence<Element, Failure> typed throws lack proper availability annotations.
-// On macOS, use AuthorizationBrowserView / AuthorizationBrowserFlowView instead.
-#if os(iOS)
 import SwiftUI
-import WebKit
+import AuthenticationServices
 
-/// A SwiftUI view that presents the OAuth 2.0 authorization flow in an in-app WebView.
+/// A SwiftUI view that presents the OAuth 2.0 authorization flow using the system browser
+/// via `ASWebAuthenticationSession`.
 ///
-/// Uses the iOS 26 / macOS 26 WebKit SwiftUI API (`WebView` + `WebPage`) to display
-/// the provider's login/consent page and intercept the redirect.
-///
-/// For iOS 17–25 / macOS 14–25, use ``AuthorizationBrowserView`` instead, which uses
-/// `ASWebAuthenticationSession` to present the authorization flow in a system browser.
+/// Available on iOS 17+ and macOS 14+ (Sonoma). On iOS 26+ / macOS 26+, consider using
+/// ``AuthorizationWebView`` for an in-app WebView experience.
 ///
 /// Usage:
 /// ```swift
-/// AuthorizationWebView(request: authRequest) { result in
+/// AuthorizationBrowserView(request: authRequest) { result in
 ///     switch result {
 ///     case .success(let response):
 ///         // Exchange code for tokens
@@ -25,22 +18,18 @@ import WebKit
 ///     }
 /// }
 /// ```
-@available(iOS 26.0, macOS 26.0, *)
-public struct AuthorizationWebView: View {
+public struct AuthorizationBrowserView: View {
     private let request: AuthorizationRequest
+    private let prefersEphemeralWebBrowserSession: Bool
     private let onCompletion: @MainActor (Result<AuthorizationResponse, AuthError>) -> Void
 
-    @State private var page: WebPage
-    @State private var isLoading = true
-    @State private var hasCompleted = false
+    @State private var hasStarted = false
 
-    /// Creates an authorization web view.
+    /// Creates an authorization browser view.
     /// - Parameters:
     ///   - request: The authorization request to present.
-    ///   - prefersEphemeralWebBrowserSession: When `true`, uses a non-persistent
-    ///     `WKWebsiteDataStore` so cookies and other website data are not shared
-    ///     with the user's normal browser session and are discarded when the view
-    ///     is dismissed. This forces the user to authenticate every time. Defaults to `false`.
+    ///   - prefersEphemeralWebBrowserSession: When `true`, the browser session does not share
+    ///     cookies or data with the user's normal browser session. Defaults to `false`.
     ///   - onCompletion: Called with the authorization response or error.
     public init(
         request: AuthorizationRequest,
@@ -48,43 +37,27 @@ public struct AuthorizationWebView: View {
         onCompletion: @escaping @MainActor (Result<AuthorizationResponse, AuthError>) -> Void
     ) {
         self.request = request
+        self.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
         self.onCompletion = onCompletion
-
-        if prefersEphemeralWebBrowserSession {
-            var configuration = WebPage.Configuration()
-            configuration.websiteDataStore = .nonPersistent()
-            self._page = State(initialValue: WebPage(configuration: configuration))
-        } else {
-            self._page = State(initialValue: WebPage())
-        }
     }
 
     public var body: some View {
-        ZStack {
-            WebView(page)
-                .ignoresSafeArea(.container, edges: .bottom)
-                .onChange(of: page.url) { _, newURL in
-                    guard let newURL, !hasCompleted else { return }
-                    checkForRedirect(url: newURL)
-                }
-
-            if page.isLoading {
-                ProgressView()
-                    .controlSize(.large)
+        ProgressView("Signing in…")
+            .task {
+                guard !hasStarted else { return }
+                hasStarted = true
+                await startSession()
             }
-        }
-        .task {
-            let url = request.authorizationURL
-            page.load(URLRequest(url: url))
-        }
     }
 
-    private func checkForRedirect(url: URL) {
-        guard isRedirectURL(url) else { return }
-        hasCompleted = true
+    @MainActor
+    private func startSession() async {
+        let url = request.authorizationURL
+        let callbackScheme = request.redirectURL.scheme
 
         do {
-            let response = try AuthorizationResponse.from(redirectURL: url, request: request)
+            let callbackURL = try await performAuthentication(url: url, callbackScheme: callbackScheme)
+            let response = try AuthorizationResponse.from(redirectURL: callbackURL, request: request)
             onCompletion(.success(response))
         } catch let error as AuthError {
             onCompletion(.failure(error))
@@ -93,39 +66,45 @@ public struct AuthorizationWebView: View {
         }
     }
 
-    private func isRedirectURL(_ url: URL) -> Bool {
-        let redirectScheme = request.redirectURL.scheme?.lowercased()
-        let redirectHost = request.redirectURL.host?.lowercased()
-        let redirectPath = request.redirectURL.path
-
-        let urlScheme = url.scheme?.lowercased()
-        let urlHost = url.host?.lowercased()
-        let urlPath = url.path
-
-        if urlScheme == redirectScheme && urlHost == redirectHost && urlPath == redirectPath {
-            return true
+    @MainActor
+    private func performAuthentication(url: URL, callbackScheme: String?) async throws -> URL {
+        try await withCheckedThrowingContinuation { continuation in
+            let session = ASWebAuthenticationSession(
+                url: url,
+                callbackURLScheme: callbackScheme
+            ) { callbackURL, error in
+                if let error {
+                    let nsError = error as NSError
+                    if nsError.domain == ASWebAuthenticationSessionErrorDomain,
+                       nsError.code == ASWebAuthenticationSessionError.canceledLogin.rawValue
+                    {
+                        continuation.resume(throwing: AuthError.userCancelled)
+                    } else {
+                        continuation.resume(throwing: AuthError.unexpected(error.localizedDescription))
+                    }
+                } else if let callbackURL {
+                    continuation.resume(returning: callbackURL)
+                } else {
+                    continuation.resume(throwing: AuthError.userCancelled)
+                }
+            }
+            session.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
+            session.start()
         }
-
-        // Also check if the URL starts with the redirect URI (for custom schemes)
-        let redirectBase = request.redirectURL.absoluteString.split(separator: "?").first
-            ?? Substring(request.redirectURL.absoluteString)
-        let urlBase = url.absoluteString.split(separator: "?").first
-            ?? Substring(url.absoluteString)
-
-        return urlBase == redirectBase
     }
 }
 
-// MARK: - Full Authorization Flow View
+// MARK: - Full Authorization Flow View (Browser)
 
-/// A convenience SwiftUI view that handles the complete authorization code + token exchange flow.
+/// A convenience SwiftUI view that handles the complete authorization code + token exchange flow
+/// using the system browser via `ASWebAuthenticationSession`.
 ///
-/// Uses the iOS 26 / macOS 26 WebKit SwiftUI API for an in-app experience.
-/// For iOS 17–25 / macOS 14–25, use ``AuthorizationBrowserFlowView`` instead.
+/// Available on iOS 17+ and macOS 14+. On iOS 26+ / macOS 26+, consider using
+/// ``AuthorizationFlowView`` for an in-app WebView experience.
 ///
 /// Usage:
 /// ```swift
-/// AuthorizationFlowView(
+/// AuthorizationBrowserFlowView(
 ///     request: authRequest,
 ///     authState: authState
 /// ) { result in
@@ -137,8 +116,7 @@ public struct AuthorizationWebView: View {
 ///     }
 /// }
 /// ```
-@available(iOS 26.0, macOS 26.0, *)
-public struct AuthorizationFlowView: View {
+public struct AuthorizationBrowserFlowView: View {
     private let request: AuthorizationRequest
     private let authState: AuthState
     private let prefersEphemeralWebBrowserSession: Bool
@@ -146,12 +124,12 @@ public struct AuthorizationFlowView: View {
 
     @State private var isExchangingToken = false
 
-    /// Creates a full authorization flow view.
+    /// Creates a full authorization flow browser view.
     /// - Parameters:
     ///   - request: The authorization request.
     ///   - authState: The auth state to update with tokens.
-    ///   - prefersEphemeralWebBrowserSession: When `true`, uses a non-persistent
-    ///     web data store so the user must authenticate every time. Defaults to `false`.
+    ///   - prefersEphemeralWebBrowserSession: When `true`, the browser session does not share
+    ///     cookies or data with the user's normal browser session. Defaults to `false`.
     ///   - onCompletion: Called when the flow completes or fails.
     public init(
         request: AuthorizationRequest,
@@ -167,7 +145,7 @@ public struct AuthorizationFlowView: View {
 
     public var body: some View {
         ZStack {
-            AuthorizationWebView(
+            AuthorizationBrowserView(
                 request: request,
                 prefersEphemeralWebBrowserSession: prefersEphemeralWebBrowserSession
             ) { result in
@@ -189,7 +167,7 @@ public struct AuthorizationFlowView: View {
                 VStack(spacing: 16) {
                     ProgressView()
                         .controlSize(.large)
-                    Text("Completing sign in...")
+                    Text("Completing sign in…")
                         .font(.headline)
                         .foregroundStyle(.white)
                 }
@@ -201,12 +179,11 @@ public struct AuthorizationFlowView: View {
     private func exchangeCode(authResponse: AuthorizationResponse) async {
         let service = AuthorizationService()
         do {
-            guard let code = authResponse.authorizationCode else {
+            guard authResponse.authorizationCode != nil else {
                 throw AuthError.unexpected("No authorization code")
             }
             let tokenRequest = TokenRequest.exchangeCode(from: authResponse)
             let tokenResponse = try await service.performTokenRequest(tokenRequest)
-            _ = code // silence unused warning
             authState.update(authorizationResponse: authResponse, tokenResponse: tokenResponse)
             isExchangingToken = false
             onCompletion(.success(()))
@@ -222,4 +199,3 @@ public struct AuthorizationFlowView: View {
         }
     }
 }
-#endif // os(iOS)

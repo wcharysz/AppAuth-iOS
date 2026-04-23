@@ -1,10 +1,18 @@
+// WebKit SwiftUI views (WebView, WebPage) require iOS 26+.
+// Guarded with #if os(iOS) to work around a macOS SDK swiftinterface bug
+// where AsyncSequence<Element, Failure> typed throws lack proper availability annotations.
+// On macOS, use EndSessionBrowserView / LogoutBrowserFlowView instead.
+#if os(iOS)
 import SwiftUI
 import WebKit
 
 /// A SwiftUI view that presents the OpenID Connect end session (logout) flow in an in-app WebView.
 ///
-/// Uses the iOS 26 WebKit SwiftUI API (`WebView` + `WebPage`) to display
+/// Uses the iOS 26 / macOS 26 WebKit SwiftUI API (`WebView` + `WebPage`) to display
 /// the provider's logout page and intercept the post-logout redirect.
+///
+/// For iOS 17–25 / macOS 14–25, use ``EndSessionBrowserView`` instead, which uses
+/// `ASWebAuthenticationSession` to present the logout flow in a system browser.
 ///
 /// Usage:
 /// ```swift
@@ -17,6 +25,7 @@ import WebKit
 ///     }
 /// }
 /// ```
+@available(iOS 26.0, macOS 26.0, *)
 public struct EndSessionWebView: View {
     private let request: EndSessionRequest
     private let onCompletion: @MainActor (Result<Void, AuthError>) -> Void
@@ -110,6 +119,9 @@ public struct EndSessionWebView: View {
 
 /// A convenience SwiftUI view that handles the complete end session flow and clears auth state.
 ///
+/// Uses the iOS 26 / macOS 26 WebKit SwiftUI API for an in-app experience.
+/// For iOS 17–25 / macOS 14–25, use ``LogoutBrowserFlowView`` instead.
+///
 /// Usage:
 /// ```swift
 /// LogoutFlowView(
@@ -124,6 +136,7 @@ public struct EndSessionWebView: View {
 ///     }
 /// }
 /// ```
+@available(iOS 26.0, macOS 26.0, *)
 public struct LogoutFlowView: View {
     private let request: EndSessionRequest
     private let authState: AuthState
@@ -164,3 +177,4 @@ public struct LogoutFlowView: View {
         }
     }
 }
+#endif // os(iOS)

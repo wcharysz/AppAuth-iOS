@@ -1,5 +1,5 @@
 import Foundation
-import Synchronization
+import os
 @testable import AppAuth
 
 /// A mock HTTP client for testing network operations without actual network calls.
@@ -32,12 +32,12 @@ struct MockHTTPClient: HTTPClient, Sendable {
 
 /// A mock HTTP client that records requests for verification.
 final class RecordingHTTPClient: HTTPClient, @unchecked Sendable {
-    private let mutex = Mutex<[URLRequest]>([])
+    private let lock = OSAllocatedUnfairLock<[URLRequest]>(initialState: [])
     private let responseData: Data
     private let statusCode: Int
 
     var recordedRequests: [URLRequest] {
-        mutex.withLock { $0 }
+        lock.withLock { $0 }
     }
 
     init(responseData: Data, statusCode: Int = 200) {
@@ -46,7 +46,7 @@ final class RecordingHTTPClient: HTTPClient, @unchecked Sendable {
     }
 
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        mutex.withLock { $0.append(request) }
+        lock.withLock { $0.append(request) }
 
         let url = request.url ?? URL(string: "https://mock.example.com")!
         let response = HTTPURLResponse(
