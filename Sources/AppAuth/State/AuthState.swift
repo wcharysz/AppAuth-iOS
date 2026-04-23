@@ -101,7 +101,7 @@ public final class AuthState {
     /// Performs an action with a fresh access token, automatically refreshing if needed.
     /// Throws if no refresh token is available and the access token is expired.
     public func performAction(
-        freshTokens action: @MainActor (String, String?) async throws -> Void
+        freshTokens action: @Sendable (String, String?) async throws -> Void
     ) async throws {
         if !isAccessTokenExpired, let accessToken {
             try await action(accessToken, idToken)

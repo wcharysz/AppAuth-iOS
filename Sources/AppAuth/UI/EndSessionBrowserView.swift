@@ -54,7 +54,6 @@ public struct EndSessionBrowserView: View {
             }
     }
 
-    @MainActor
     private func startSession() async {
         guard let postLogoutRedirectURL = request.postLogoutRedirectURL else {
             onCompletion(.failure(.unexpected(
@@ -90,7 +89,6 @@ public struct EndSessionBrowserView: View {
         }
     }
 
-    @MainActor
     private func performLogout(url: URL, callbackScheme: String?) async throws -> URL {
         try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(

@@ -50,7 +50,6 @@ public struct AuthorizationBrowserView: View {
             }
     }
 
-    @MainActor
     private func startSession() async {
         let url = request.authorizationURL
         let callbackScheme = request.redirectURL.scheme
@@ -66,7 +65,6 @@ public struct AuthorizationBrowserView: View {
         }
     }
 
-    @MainActor
     private func performAuthentication(url: URL, callbackScheme: String?) async throws -> URL {
         try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(
@@ -175,7 +173,6 @@ public struct AuthorizationBrowserFlowView: View {
         }
     }
 
-    @MainActor
     private func exchangeCode(authResponse: AuthorizationResponse) async {
         let service = AuthorizationService()
         do {

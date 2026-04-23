@@ -197,7 +197,6 @@ public struct AuthorizationFlowView: View {
         }
     }
 
-    @MainActor
     private func exchangeCode(authResponse: AuthorizationResponse) async {
         let service = AuthorizationService()
         do {
