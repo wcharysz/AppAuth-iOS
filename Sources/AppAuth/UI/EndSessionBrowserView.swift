@@ -24,7 +24,7 @@ import AuthenticationServices
 public struct EndSessionBrowserView: View {
     private let request: EndSessionRequest
     private let prefersEphemeralWebBrowserSession: Bool
-    private let onCompletion: @MainActor (Result<Void, AuthError>) -> Void
+    private let onCompletion: @Sendable (Result<Void, AuthError>) -> Void
 
     @State private var hasStarted = false
 
@@ -38,7 +38,7 @@ public struct EndSessionBrowserView: View {
     public init(
         request: EndSessionRequest,
         prefersEphemeralWebBrowserSession: Bool = false,
-        onCompletion: @escaping @MainActor (Result<Void, AuthError>) -> Void
+        onCompletion: @escaping @Sendable (Result<Void, AuthError>) -> Void
     ) {
         self.request = request
         self.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
@@ -142,7 +142,7 @@ public struct LogoutBrowserFlowView: View {
     private let request: EndSessionRequest
     private let authState: AuthState
     private let prefersEphemeralWebBrowserSession: Bool
-    private let onCompletion: @MainActor (Result<Void, AuthError>) -> Void
+    private let onCompletion: @Sendable (Result<Void, AuthError>) -> Void
 
     /// Creates a full logout flow browser view.
     /// - Parameters:
@@ -155,7 +155,7 @@ public struct LogoutBrowserFlowView: View {
         request: EndSessionRequest,
         authState: AuthState,
         prefersEphemeralWebBrowserSession: Bool = false,
-        onCompletion: @escaping @MainActor (Result<Void, AuthError>) -> Void
+        onCompletion: @escaping @Sendable (Result<Void, AuthError>) -> Void
     ) {
         self.request = request
         self.authState = authState
@@ -168,12 +168,14 @@ public struct LogoutBrowserFlowView: View {
             request: request,
             prefersEphemeralWebBrowserSession: prefersEphemeralWebBrowserSession
         ) { result in
-            switch result {
-            case .success:
-                authState.clear()
-                onCompletion(.success(()))
-            case .failure(let error):
-                onCompletion(.failure(error))
+            Task {
+                switch result {
+                case .success:
+                    await authState.clear()
+                    onCompletion(.success(()))
+                case .failure(let error):
+                    onCompletion(.failure(error))
+                }
             }
         }
     }

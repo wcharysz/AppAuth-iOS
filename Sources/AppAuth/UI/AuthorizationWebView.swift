@@ -28,7 +28,7 @@ import WebKit
 @available(iOS 26.0, macOS 26.0, *)
 public struct AuthorizationWebView: View {
     private let request: AuthorizationRequest
-    private let onCompletion: @MainActor (Result<AuthorizationResponse, AuthError>) -> Void
+    private let onCompletion: @Sendable (Result<AuthorizationResponse, AuthError>) -> Void
 
     @State private var page: WebPage
     @State private var isLoading = true
@@ -45,7 +45,7 @@ public struct AuthorizationWebView: View {
     public init(
         request: AuthorizationRequest,
         prefersEphemeralWebBrowserSession: Bool = false,
-        onCompletion: @escaping @MainActor (Result<AuthorizationResponse, AuthError>) -> Void
+        onCompletion: @escaping @Sendable (Result<AuthorizationResponse, AuthError>) -> Void
     ) {
         self.request = request
         self.onCompletion = onCompletion
@@ -142,7 +142,7 @@ public struct AuthorizationFlowView: View {
     private let request: AuthorizationRequest
     private let authState: AuthState
     private let prefersEphemeralWebBrowserSession: Bool
-    private let onCompletion: @MainActor (Result<Void, AuthError>) -> Void
+    private let onCompletion: @Sendable (Result<Void, AuthError>) -> Void
 
     @State private var isExchangingToken = false
 
@@ -157,7 +157,7 @@ public struct AuthorizationFlowView: View {
         request: AuthorizationRequest,
         authState: AuthState,
         prefersEphemeralWebBrowserSession: Bool = false,
-        onCompletion: @escaping @MainActor (Result<Void, AuthError>) -> Void
+        onCompletion: @escaping @Sendable (Result<Void, AuthError>) -> Void
     ) {
         self.request = request
         self.authState = authState
@@ -171,15 +171,15 @@ public struct AuthorizationFlowView: View {
                 request: request,
                 prefersEphemeralWebBrowserSession: prefersEphemeralWebBrowserSession
             ) { result in
-                switch result {
-                case .success(let authResponse):
-                    isExchangingToken = true
-                    Task {
+                Task {
+                    switch result {
+                    case .success(let authResponse):
+                        await setIsExchangingToken(true)
                         await exchangeCode(authResponse: authResponse)
+                    case .failure(let error):
+                        await authState.setError(error)
+                        onCompletion(.failure(error))
                     }
-                case .failure(let error):
-                    authState.setError(error)
-                    onCompletion(.failure(error))
                 }
             }
 
@@ -195,6 +195,10 @@ public struct AuthorizationFlowView: View {
                 }
             }
         }
+    }
+    
+    private func setIsExchangingToken(_ value: Bool) {
+        isExchangingToken = value
     }
 
     private func exchangeCode(authResponse: AuthorizationResponse) async {
