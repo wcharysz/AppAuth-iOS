@@ -21,16 +21,33 @@ public struct AuthorizationWebView: View {
     private let request: AuthorizationRequest
     private let onCompletion: @MainActor (Result<AuthorizationResponse, AuthError>) -> Void
 
-    @State private var page = WebPage()
+    @State private var page: WebPage
     @State private var isLoading = true
     @State private var hasCompleted = false
 
+    /// Creates an authorization web view.
+    /// - Parameters:
+    ///   - request: The authorization request to present.
+    ///   - prefersEphemeralWebBrowserSession: When `true`, uses a non-persistent
+    ///     `WKWebsiteDataStore` so cookies and other website data are not shared
+    ///     with the user's normal browser session and are discarded when the view
+    ///     is dismissed. This forces the user to authenticate every time. Defaults to `false`.
+    ///   - onCompletion: Called with the authorization response or error.
     public init(
         request: AuthorizationRequest,
+        prefersEphemeralWebBrowserSession: Bool = false,
         onCompletion: @escaping @MainActor (Result<AuthorizationResponse, AuthError>) -> Void
     ) {
         self.request = request
         self.onCompletion = onCompletion
+
+        if prefersEphemeralWebBrowserSession {
+            var configuration = WebPage.Configuration()
+            configuration.websiteDataStore = .nonPersistent()
+            self._page = State(initialValue: WebPage(configuration: configuration))
+        } else {
+            self._page = State(initialValue: WebPage())
+        }
     }
 
     public var body: some View {
@@ -111,23 +128,36 @@ public struct AuthorizationWebView: View {
 public struct AuthorizationFlowView: View {
     private let request: AuthorizationRequest
     private let authState: AuthState
+    private let prefersEphemeralWebBrowserSession: Bool
     private let onCompletion: @MainActor (Result<Void, AuthError>) -> Void
 
     @State private var isExchangingToken = false
 
+    /// Creates a full authorization flow view.
+    /// - Parameters:
+    ///   - request: The authorization request.
+    ///   - authState: The auth state to update with tokens.
+    ///   - prefersEphemeralWebBrowserSession: When `true`, uses a non-persistent
+    ///     web data store so the user must authenticate every time. Defaults to `false`.
+    ///   - onCompletion: Called when the flow completes or fails.
     public init(
         request: AuthorizationRequest,
         authState: AuthState,
+        prefersEphemeralWebBrowserSession: Bool = false,
         onCompletion: @escaping @MainActor (Result<Void, AuthError>) -> Void
     ) {
         self.request = request
         self.authState = authState
+        self.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
         self.onCompletion = onCompletion
     }
 
     public var body: some View {
         ZStack {
-            AuthorizationWebView(request: request) { result in
+            AuthorizationWebView(
+                request: request,
+                prefersEphemeralWebBrowserSession: prefersEphemeralWebBrowserSession
+            ) { result in
                 switch result {
                 case .success(let authResponse):
                     isExchangingToken = true

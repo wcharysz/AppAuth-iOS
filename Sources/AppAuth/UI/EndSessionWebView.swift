@@ -21,15 +21,31 @@ public struct EndSessionWebView: View {
     private let request: EndSessionRequest
     private let onCompletion: @MainActor (Result<Void, AuthError>) -> Void
 
-    @State private var page = WebPage()
+    @State private var page: WebPage
     @State private var hasCompleted = false
 
+    /// Creates an end session web view.
+    /// - Parameters:
+    ///   - request: The end session request to present.
+    ///   - prefersEphemeralWebBrowserSession: When `true`, uses a non-persistent
+    ///     `WKWebsiteDataStore` so cookies and website data are discarded.
+    ///     Defaults to `false`.
+    ///   - onCompletion: Called when the logout completes or fails.
     public init(
         request: EndSessionRequest,
+        prefersEphemeralWebBrowserSession: Bool = false,
         onCompletion: @escaping @MainActor (Result<Void, AuthError>) -> Void
     ) {
         self.request = request
         self.onCompletion = onCompletion
+
+        if prefersEphemeralWebBrowserSession {
+            var configuration = WebPage.Configuration()
+            configuration.websiteDataStore = .nonPersistent()
+            self._page = State(initialValue: WebPage(configuration: configuration))
+        } else {
+            self._page = State(initialValue: WebPage())
+        }
     }
 
     public var body: some View {
@@ -111,20 +127,33 @@ public struct EndSessionWebView: View {
 public struct LogoutFlowView: View {
     private let request: EndSessionRequest
     private let authState: AuthState
+    private let prefersEphemeralWebBrowserSession: Bool
     private let onCompletion: @MainActor (Result<Void, AuthError>) -> Void
 
+    /// Creates a full logout flow view.
+    /// - Parameters:
+    ///   - request: The end session request.
+    ///   - authState: The auth state to clear on success.
+    ///   - prefersEphemeralWebBrowserSession: When `true`, uses a non-persistent
+    ///     web data store. Defaults to `false`.
+    ///   - onCompletion: Called when the flow completes or fails.
     public init(
         request: EndSessionRequest,
         authState: AuthState,
+        prefersEphemeralWebBrowserSession: Bool = false,
         onCompletion: @escaping @MainActor (Result<Void, AuthError>) -> Void
     ) {
         self.request = request
         self.authState = authState
+        self.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
         self.onCompletion = onCompletion
     }
 
     public var body: some View {
-        EndSessionWebView(request: request) { result in
+        EndSessionWebView(
+            request: request,
+            prefersEphemeralWebBrowserSession: prefersEphemeralWebBrowserSession
+        ) { result in
             switch result {
             case .success:
                 authState.clear()
