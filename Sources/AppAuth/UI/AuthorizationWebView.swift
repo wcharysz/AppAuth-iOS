@@ -147,6 +147,8 @@ public struct AuthorizationFlowView: View {
 
     @State private var resolvedRequest: AuthorizationRequest?
     @State private var isExchangingToken = false
+    @State private var isLoadingRequest = false
+    @State private var loadError: AuthError?
 
     /// Creates a full authorization flow view.
     /// - Parameters:
@@ -192,22 +194,30 @@ public struct AuthorizationFlowView: View {
     }
 
     public var body: some View {
-        if let request = syncRequest ?? resolvedRequest {
-            flowContent(request: request)
-        } else {
-            ProgressView("Preparing sign in…")
-                .task {
-                    do {
-                        resolvedRequest = try await requestProvider?()
-                    } catch let error as AuthError {
-                        authState.setError(error)
-                        onCompletion(.failure(error))
-                    } catch {
-                        let authError = AuthError.unexpected(error.localizedDescription)
-                        authState.setError(authError)
-                        onCompletion(.failure(authError))
-                    }
-                }
+        ZStack {
+            if let request = syncRequest ?? resolvedRequest {
+                flowContent(request: request)
+            }
+
+            if isLoadingRequest {
+                Color(.systemBackground)
+                ProgressView("Preparing sign in…")
+            }
+        }
+        .task {
+            guard syncRequest == nil, requestProvider != nil else { return }
+            isLoadingRequest = true
+            do {
+                resolvedRequest = try await requestProvider?()
+            } catch let error as AuthError {
+                authState.setError(error)
+                onCompletion(.failure(error))
+            } catch {
+                let authError = AuthError.unexpected(error.localizedDescription)
+                authState.setError(authError)
+                onCompletion(.failure(authError))
+            }
+            isLoadingRequest = false
         }
     }
 
