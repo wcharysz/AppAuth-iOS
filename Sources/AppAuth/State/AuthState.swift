@@ -57,6 +57,9 @@ public final class AuthState {
     // Keeps the refresh token if a new token response doesn't include one
     private var _previousRefreshToken: String?
 
+    /// In-flight refresh task, used to coalesce concurrent refresh attempts.
+    private var _refreshTask: Task<TokenResponse, Error>?
+
     private let authorizationService: AuthorizationService
 
     public init(httpClient: HTTPClient = URLSession.shared) {
@@ -92,14 +95,20 @@ public final class AuthState {
 
     /// Clears all auth state (logout).
     public func clear() {
+        self.configuration = nil
+        self.clientID = nil
+        self.clientSecret = nil
         self.lastAuthorizationResponse = nil
         self.lastTokenResponse = nil
         self._previousRefreshToken = nil
+        self._refreshTask?.cancel()
+        self._refreshTask = nil
         self.lastError = nil
     }
 
     /// Performs an action with a fresh access token, automatically refreshing if needed.
     /// Throws if no refresh token is available and the access token is expired.
+    /// Concurrent calls coalesce into a single refresh request.
     public func performAction(
         freshTokens action: @Sendable (String, String?) async throws -> Void
     ) async throws {
@@ -108,7 +117,22 @@ public final class AuthState {
             return
         }
 
-        // Need to refresh
+        let tokenResponse = try await coalescedRefresh()
+
+        guard let newAccessToken = tokenResponse.accessToken else {
+            throw AuthError.invalidTokenResponse
+        }
+
+        try await action(newAccessToken, tokenResponse.idToken)
+    }
+
+    /// Coalesces concurrent refresh attempts into a single in-flight request.
+    /// All callers awaiting a refresh share the same `Task` and receive the same result.
+    private func coalescedRefresh() async throws -> TokenResponse {
+        if let existing = _refreshTask {
+            return try await existing.value
+        }
+
         guard let config = configuration,
               let clientID = clientID,
               let currentRefreshToken = refreshToken
@@ -116,21 +140,23 @@ public final class AuthState {
             throw AuthError.noRefreshToken
         }
 
-        do {
-            let newTokenResponse = try await authorizationService.refreshAccessToken(
+        let task = Task {
+            try await authorizationService.refreshAccessToken(
                 configuration: config,
                 clientID: clientID,
                 clientSecret: clientSecret,
                 refreshToken: currentRefreshToken
             )
-            updateToken(newTokenResponse)
+        }
+        _refreshTask = task
 
-            guard let newAccessToken = newTokenResponse.accessToken else {
-                throw AuthError.invalidTokenResponse
-            }
-
-            try await action(newAccessToken, newTokenResponse.idToken)
+        do {
+            let response = try await task.value
+            updateToken(response)
+            _refreshTask = nil
+            return response
         } catch {
+            _refreshTask = nil
             if let authError = error as? AuthError {
                 setError(authError)
             }
@@ -160,14 +186,20 @@ public final class AuthState {
         self.configuration = configuration
         self.clientID = data.clientID
         self.clientSecret = data.clientSecret
+
+        let responseDate = data.lastTokenResponseDate ?? Date()
+        let expiresIn: Int? = data.accessTokenExpirationDate.map { expDate in
+            max(0, Int(expDate.timeIntervalSince(responseDate)))
+        }
+
         self.lastTokenResponse = TokenResponse(
             accessToken: data.accessToken,
             tokenType: data.tokenType,
-            expiresIn: nil,
+            expiresIn: expiresIn,
             refreshToken: data.refreshToken,
             scope: data.scope,
             idToken: data.idToken,
-            tokenResponseDate: data.lastTokenResponseDate ?? Date()
+            tokenResponseDate: responseDate
         )
     }
 }
