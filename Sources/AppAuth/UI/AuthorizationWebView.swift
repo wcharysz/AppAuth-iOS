@@ -142,13 +142,15 @@ public struct AuthorizationFlowView: View {
     private let syncRequest: AuthorizationRequest?
     private let requestProvider: (@Sendable () async throws -> AuthorizationRequest)?
     private let authState: AuthState
-    private let prefersEphemeralWebBrowserSession: Bool
     private let onCompletion: @Sendable (Result<Void, AuthError>) -> Void
 
+    // The WebPage lives here — not inside a conditional child view — so it is
+    // never destroyed by a SwiftUI structural-identity change.
+    @State private var page: WebPage
     @State private var resolvedRequest: AuthorizationRequest?
+    @State private var hasCompleted = false
+    @State private var isResolvingRequest = false
     @State private var isExchangingToken = false
-    @State private var isLoadingRequest = false
-    @State private var loadError: AuthError?
 
     /// Creates a full authorization flow view.
     /// - Parameters:
@@ -166,8 +168,15 @@ public struct AuthorizationFlowView: View {
         self.syncRequest = request
         self.requestProvider = nil
         self.authState = authState
-        self.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
         self.onCompletion = onCompletion
+
+        if prefersEphemeralWebBrowserSession {
+            var configuration = WebPage.Configuration()
+            configuration.websiteDataStore = .nonPersistent()
+            self._page = State(initialValue: WebPage(configuration: configuration))
+        } else {
+            self._page = State(initialValue: WebPage())
+        }
     }
 
     /// Creates a full authorization flow view with an async request provider.
@@ -189,55 +198,38 @@ public struct AuthorizationFlowView: View {
         self.syncRequest = nil
         self.requestProvider = request
         self.authState = authState
-        self.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
         self.onCompletion = onCompletion
+
+        if prefersEphemeralWebBrowserSession {
+            var configuration = WebPage.Configuration()
+            configuration.websiteDataStore = .nonPersistent()
+            self._page = State(initialValue: WebPage(configuration: configuration))
+        } else {
+            self._page = State(initialValue: WebPage())
+        }
     }
 
     public var body: some View {
+        // The WebView is always in the view tree — no conditional branching —
+        // so its identity (and the underlying WebPage) is never torn down.
         ZStack {
-            if let request = syncRequest ?? resolvedRequest {
-                flowContent(request: request)
+            WebView(page)
+                .ignoresSafeArea(.container, edges: .bottom)
+                .onChange(of: page.url) { _, newURL in
+                    guard let request = syncRequest ?? resolvedRequest,
+                          let newURL,
+                          !hasCompleted else { return }
+                    checkForRedirect(url: newURL, request: request)
+                }
+
+            if isResolvingRequest || page.isLoading {
+                ProgressView()
+                    .controlSize(.large)
             }
 
-            if isLoadingRequest {
+            if isResolvingRequest {
                 Color(.systemBackground)
                 ProgressView("Preparing sign in…")
-            }
-        }
-        .task {
-            guard syncRequest == nil, requestProvider != nil else { return }
-            isLoadingRequest = true
-            do {
-                resolvedRequest = try await requestProvider?()
-            } catch let error as AuthError {
-                authState.setError(error)
-                onCompletion(.failure(error))
-            } catch {
-                let authError = AuthError.unexpected(error.localizedDescription)
-                authState.setError(authError)
-                onCompletion(.failure(authError))
-            }
-            isLoadingRequest = false
-        }
-    }
-
-    @ViewBuilder
-    private func flowContent(request: AuthorizationRequest) -> some View {
-        ZStack {
-            AuthorizationWebView(
-                request: request,
-                prefersEphemeralWebBrowserSession: prefersEphemeralWebBrowserSession
-            ) { result in
-                Task {
-                    switch result {
-                    case .success(let authResponse):
-                        await setIsExchangingToken(true)
-                        await exchangeCode(authResponse: authResponse)
-                    case .failure(let error):
-                        await authState.setError(error)
-                        onCompletion(.failure(error))
-                    }
-                }
             }
 
             if isExchangingToken {
@@ -252,21 +244,87 @@ public struct AuthorizationFlowView: View {
                 }
             }
         }
+        .task {
+            let request: AuthorizationRequest
+            if let sync = syncRequest {
+                request = sync
+            } else if let provider = requestProvider {
+                isResolvingRequest = true
+                do {
+                    let resolved = try await provider()
+                    resolvedRequest = resolved
+                    request = resolved
+                } catch let error as AuthError {
+                    authState.setError(error)
+                    onCompletion(.failure(error))
+                    return
+                } catch {
+                    let authError = AuthError.unexpected(error.localizedDescription)
+                    authState.setError(authError)
+                    onCompletion(.failure(authError))
+                    return
+                }
+                isResolvingRequest = false
+            } else {
+                return
+            }
+            page.load(URLRequest(url: request.authorizationURL))
+        }
     }
-    
-    private func setIsExchangingToken(_ value: Bool) {
-        isExchangingToken = value
+
+    // MARK: - Redirect Detection
+
+    private func checkForRedirect(url: URL, request: AuthorizationRequest) {
+        guard isRedirectURL(url, for: request) else { return }
+        hasCompleted = true
+
+        do {
+            let authResponse = try AuthorizationResponse.from(redirectURL: url, request: request)
+            isExchangingToken = true
+            Task {
+                await exchangeCode(authResponse: authResponse)
+            }
+        } catch let error as AuthError {
+            authState.setError(error)
+            onCompletion(.failure(error))
+        } catch {
+            let authError = AuthError.unexpected(error.localizedDescription)
+            authState.setError(authError)
+            onCompletion(.failure(authError))
+        }
     }
+
+    private func isRedirectURL(_ url: URL, for request: AuthorizationRequest) -> Bool {
+        let redirectScheme = request.redirectURL.scheme?.lowercased()
+        let redirectHost = request.redirectURL.host?.lowercased()
+        let redirectPath = request.redirectURL.path
+
+        let urlScheme = url.scheme?.lowercased()
+        let urlHost = url.host?.lowercased()
+        let urlPath = url.path
+
+        if urlScheme == redirectScheme && urlHost == redirectHost && urlPath == redirectPath {
+            return true
+        }
+
+        let redirectBase = request.redirectURL.absoluteString.split(separator: "?").first
+            ?? Substring(request.redirectURL.absoluteString)
+        let urlBase = url.absoluteString.split(separator: "?").first
+            ?? Substring(url.absoluteString)
+
+        return urlBase == redirectBase
+    }
+
+    // MARK: - Token Exchange
 
     private func exchangeCode(authResponse: AuthorizationResponse) async {
         let service = AuthorizationService()
         do {
-            guard let code = authResponse.authorizationCode else {
+            guard authResponse.authorizationCode != nil else {
                 throw AuthError.unexpected("No authorization code")
             }
             let tokenRequest = TokenRequest.exchangeCode(from: authResponse)
             let tokenResponse = try await service.performTokenRequest(tokenRequest)
-            _ = code // silence unused warning
             authState.update(authorizationResponse: authResponse, tokenResponse: tokenResponse)
             isExchangingToken = false
             onCompletion(.success(()))
