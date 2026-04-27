@@ -139,11 +139,13 @@ public struct AuthorizationWebView: View {
 /// ```
 @available(iOS 26.0, macOS 26.0, *)
 public struct AuthorizationFlowView: View {
-    private let request: AuthorizationRequest
+    private let syncRequest: AuthorizationRequest?
+    private let requestProvider: (@Sendable () async throws -> AuthorizationRequest)?
     private let authState: AuthState
     private let prefersEphemeralWebBrowserSession: Bool
     private let onCompletion: @Sendable (Result<Void, AuthError>) -> Void
 
+    @State private var resolvedRequest: AuthorizationRequest?
     @State private var isExchangingToken = false
 
     /// Creates a full authorization flow view.
@@ -159,13 +161,58 @@ public struct AuthorizationFlowView: View {
         prefersEphemeralWebBrowserSession: Bool = false,
         onCompletion: @escaping @Sendable (Result<Void, AuthError>) -> Void
     ) {
-        self.request = request
+        self.syncRequest = request
+        self.requestProvider = nil
+        self.authState = authState
+        self.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
+        self.onCompletion = onCompletion
+    }
+
+    /// Creates a full authorization flow view with an async request provider.
+    ///
+    /// Use this initializer when the authorization request needs to be built asynchronously
+    /// (e.g., fetching OpenID Connect discovery metadata).
+    /// - Parameters:
+    ///   - request: An async throwing closure that produces the authorization request.
+    ///   - authState: The auth state to update with tokens.
+    ///   - prefersEphemeralWebBrowserSession: When `true`, uses a non-persistent
+    ///     web data store so the user must authenticate every time. Defaults to `false`.
+    ///   - onCompletion: Called when the flow completes or fails.
+    public init(
+        request: @escaping @Sendable () async throws -> AuthorizationRequest,
+        authState: AuthState,
+        prefersEphemeralWebBrowserSession: Bool = false,
+        onCompletion: @escaping @Sendable (Result<Void, AuthError>) -> Void
+    ) {
+        self.syncRequest = nil
+        self.requestProvider = request
         self.authState = authState
         self.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
         self.onCompletion = onCompletion
     }
 
     public var body: some View {
+        if let request = syncRequest ?? resolvedRequest {
+            flowContent(request: request)
+        } else {
+            ProgressView("Preparing sign in…")
+                .task {
+                    do {
+                        resolvedRequest = try await requestProvider?()
+                    } catch let error as AuthError {
+                        authState.setError(error)
+                        onCompletion(.failure(error))
+                    } catch {
+                        let authError = AuthError.unexpected(error.localizedDescription)
+                        authState.setError(authError)
+                        onCompletion(.failure(authError))
+                    }
+                }
+        }
+    }
+
+    @ViewBuilder
+    private func flowContent(request: AuthorizationRequest) -> some View {
         ZStack {
             AuthorizationWebView(
                 request: request,
