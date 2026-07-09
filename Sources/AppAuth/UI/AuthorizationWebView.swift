@@ -5,6 +5,27 @@
 #if os(iOS)
 import SwiftUI
 import WebKit
+import os
+
+/// Logging helpers shared by the in-app WebView authorization flows.
+///
+/// In **DEBUG** builds the full URL (including query and fragment) is logged so redirects,
+/// authorization codes and state can be inspected. In **release** builds the query and
+/// fragment are stripped to avoid leaking authorization codes into device logs.
+private enum WebViewLog {
+    static let logger = Logger(subsystem: "AppAuth", category: "WebView")
+
+    static func url(_ url: URL) -> String {
+        #if DEBUG
+        return url.absoluteString
+        #else
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.query = nil
+        components?.fragment = nil
+        return components?.string ?? (url.scheme.map { "\($0)://\(url.host ?? "")\(url.path)" } ?? url.path)
+        #endif
+    }
+}
 
 /// A SwiftUI view that presents the OAuth 2.0 authorization flow in an in-app WebView.
 ///
@@ -65,6 +86,7 @@ public struct AuthorizationWebView: View {
                 .ignoresSafeArea(.container, edges: .bottom)
                 .onChange(of: page.url) { _, newURL in
                     guard let newURL, !hasCompleted else { return }
+                    WebViewLog.logger.debug("↪ navigation \(WebViewLog.url(newURL), privacy: .public)")
                     checkForRedirect(url: newURL)
                 }
 
@@ -75,6 +97,7 @@ public struct AuthorizationWebView: View {
         }
         .task {
             let url = request.authorizationURL
+            WebViewLog.logger.debug("→ load \(WebViewLog.url(url), privacy: .public)")
             page.load(URLRequest(url: url))
         }
     }
@@ -82,6 +105,7 @@ public struct AuthorizationWebView: View {
     private func checkForRedirect(url: URL) {
         guard isRedirectURL(url) else { return }
         hasCompleted = true
+        WebViewLog.logger.debug("✓ captured redirect \(WebViewLog.url(url), privacy: .public)")
 
         do {
             let response = try AuthorizationResponse.from(redirectURL: url, request: request)
@@ -144,6 +168,10 @@ public struct AuthorizationFlowView: View {
     private let authState: AuthState
     private let onCompletion: @Sendable (Result<Void, AuthError>) -> Void
 
+    /// An optional URL to load first instead of `request.authorizationURL`
+    /// (e.g. a registration page that returns into the same authorize request).
+    private let startURLOverride: URL?
+
     // The WebPage lives here — not inside a conditional child view — so it is
     // never destroyed by a SwiftUI structural-identity change.
     @State private var page: WebPage
@@ -163,12 +191,14 @@ public struct AuthorizationFlowView: View {
         request: AuthorizationRequest,
         authState: AuthState,
         prefersEphemeralWebBrowserSession: Bool = false,
+        startURL: URL? = nil,
         onCompletion: @escaping @Sendable (Result<Void, AuthError>) -> Void
     ) {
         self.syncRequest = request
         self.requestProvider = nil
         self.authState = authState
         self.onCompletion = onCompletion
+        self.startURLOverride = startURL
 
         if prefersEphemeralWebBrowserSession {
             var configuration = WebPage.Configuration()
@@ -193,12 +223,14 @@ public struct AuthorizationFlowView: View {
         request: @escaping @Sendable () async throws -> AuthorizationRequest,
         authState: AuthState,
         prefersEphemeralWebBrowserSession: Bool = false,
+        startURL: URL? = nil,
         onCompletion: @escaping @Sendable (Result<Void, AuthError>) -> Void
     ) {
         self.syncRequest = nil
         self.requestProvider = request
         self.authState = authState
         self.onCompletion = onCompletion
+        self.startURLOverride = startURL
 
         if prefersEphemeralWebBrowserSession {
             var configuration = WebPage.Configuration()
@@ -219,6 +251,7 @@ public struct AuthorizationFlowView: View {
                     guard let request = syncRequest ?? resolvedRequest,
                           let newURL,
                           !hasCompleted else { return }
+                    WebViewLog.logger.debug("↪ navigation \(WebViewLog.url(newURL), privacy: .public)")
                     checkForRedirect(url: newURL, request: request)
                 }
 
@@ -268,7 +301,9 @@ public struct AuthorizationFlowView: View {
             } else {
                 return
             }
-            page.load(URLRequest(url: request.authorizationURL))
+            let loadURL = startURLOverride ?? request.authorizationURL
+            WebViewLog.logger.debug("→ load \(WebViewLog.url(loadURL), privacy: .public)")
+            page.load(URLRequest(url: loadURL))
         }
     }
 
@@ -277,6 +312,7 @@ public struct AuthorizationFlowView: View {
     private func checkForRedirect(url: URL, request: AuthorizationRequest) {
         guard isRedirectURL(url, for: request) else { return }
         hasCompleted = true
+        WebViewLog.logger.debug("✓ captured redirect \(WebViewLog.url(url), privacy: .public)")
 
         do {
             let authResponse = try AuthorizationResponse.from(redirectURL: url, request: request)

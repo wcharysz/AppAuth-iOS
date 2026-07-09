@@ -1,7 +1,7 @@
 import Foundation
 
 /// Standard OpenID Connect / OAuth 2.0 scopes.
-public struct Scope: RawRepresentable, Sendable, Equatable, Hashable {
+public struct Scope: RawRepresentable, Sendable, Equatable, Hashable, Decodable {
     public let rawValue: String
 
     public init(rawValue: String) {

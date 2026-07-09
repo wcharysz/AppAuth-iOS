@@ -4,7 +4,7 @@ import Foundation
 public actor TokenService {
     private let httpClient: HTTPClient
 
-    public init(httpClient: HTTPClient = URLSession.shared) {
+    public init(httpClient: HTTPClient = LoggingHTTPClient()) {
         self.httpClient = httpClient
     }
 

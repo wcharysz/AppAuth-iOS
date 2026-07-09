@@ -50,7 +50,7 @@ public struct ServiceConfiguration: Sendable, Codable, Equatable {
     /// by fetching the `.well-known/openid-configuration` document.
     public static func discover(
         from issuer: URL,
-        using httpClient: HTTPClient = URLSession.shared
+        using httpClient: HTTPClient = LoggingHTTPClient()
     ) async throws -> ServiceConfiguration {
         let discoveryURL = issuer.appendingPathComponent(".well-known/openid-configuration")
         let request = URLRequest(url: discoveryURL)

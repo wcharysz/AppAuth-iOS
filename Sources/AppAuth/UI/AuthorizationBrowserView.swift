@@ -20,6 +20,7 @@ import AuthenticationServices
 /// ```
 public struct AuthorizationBrowserView: View {
     private let request: AuthorizationRequest
+    private let startURLOverride: URL?
     private let prefersEphemeralWebBrowserSession: Bool
     private let onCompletion: @Sendable (Result<AuthorizationResponse, AuthError>) -> Void
 
@@ -30,13 +31,17 @@ public struct AuthorizationBrowserView: View {
     ///   - request: The authorization request to present.
     ///   - prefersEphemeralWebBrowserSession: When `true`, the browser session does not share
     ///     cookies or data with the user's normal browser session. Defaults to `false`.
+    ///   - startURL: An optional URL to load first instead of `request.authorizationURL`
+    ///     (e.g. a registration page that returns into the same authorize request).
     ///   - onCompletion: Called with the authorization response or error.
     public init(
         request: AuthorizationRequest,
         prefersEphemeralWebBrowserSession: Bool = false,
+        startURL: URL? = nil,
         onCompletion: @escaping @Sendable (Result<AuthorizationResponse, AuthError>) -> Void
     ) {
         self.request = request
+        self.startURLOverride = startURL
         self.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
         self.onCompletion = onCompletion
     }
@@ -51,7 +56,7 @@ public struct AuthorizationBrowserView: View {
     }
 
     private func startSession() async {
-        let url = request.authorizationURL
+        let url = startURLOverride ?? request.authorizationURL
         let callbackScheme = request.redirectURL.scheme
 
         do {
@@ -117,6 +122,7 @@ public struct AuthorizationBrowserView: View {
 public struct AuthorizationBrowserFlowView: View {
     private let syncRequest: AuthorizationRequest?
     private let requestProvider: (@Sendable () async throws -> AuthorizationRequest)?
+    private let startURLOverride: URL?
     private let authState: AuthState
     private let prefersEphemeralWebBrowserSession: Bool
     private let onCompletion: @Sendable (Result<Void, AuthError>) -> Void
@@ -135,10 +141,12 @@ public struct AuthorizationBrowserFlowView: View {
         request: AuthorizationRequest,
         authState: AuthState,
         prefersEphemeralWebBrowserSession: Bool = false,
+        startURL: URL? = nil,
         onCompletion: @escaping @Sendable (Result<Void, AuthError>) -> Void
     ) {
         self.syncRequest = request
         self.requestProvider = nil
+        self.startURLOverride = startURL
         self.authState = authState
         self.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
         self.onCompletion = onCompletion
@@ -158,10 +166,12 @@ public struct AuthorizationBrowserFlowView: View {
         request: @escaping @Sendable () async throws -> AuthorizationRequest,
         authState: AuthState,
         prefersEphemeralWebBrowserSession: Bool = false,
+        startURL: URL? = nil,
         onCompletion: @escaping @Sendable (Result<Void, AuthError>) -> Void
     ) {
         self.syncRequest = nil
         self.requestProvider = request
+        self.startURLOverride = startURL
         self.authState = authState
         self.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
         self.onCompletion = onCompletion
@@ -192,7 +202,8 @@ public struct AuthorizationBrowserFlowView: View {
         ZStack {
             AuthorizationBrowserView(
                 request: request,
-                prefersEphemeralWebBrowserSession: prefersEphemeralWebBrowserSession
+                prefersEphemeralWebBrowserSession: prefersEphemeralWebBrowserSession,
+                startURL: startURLOverride
             ) { result in
                 Task {
                     switch result {

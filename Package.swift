@@ -6,13 +6,12 @@ let package = Package(
     platforms: [
         .iOS(.v17),
         .macOS(.v14)
-    ],
-    products: [
+    ], products: [
         .library(
             name: "AppAuth",
             targets: ["AppAuth"]
         )
-    ],
+    ], dependencies: [.package(url: "https://github.com/apple/swift-http-types", from: "1.5.1")],
     targets: [
         .target(
             name: "AppAuth",

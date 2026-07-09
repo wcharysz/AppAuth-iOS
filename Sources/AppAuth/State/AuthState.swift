@@ -54,6 +54,38 @@ public final class AuthState {
         lastTokenResponse?.accessTokenExpirationDate
     }
 
+    /// How long before the real expiry the access token is treated as stale, so a
+    /// proactive refresh can happen before a token expires in the middle of a request.
+    public static let refreshBuffer: TimeInterval = 60
+
+    /// The date at which the access token should be proactively refreshed.
+    ///
+    /// This is the expiration date minus the refresh buffer (capped at half the token's
+    /// lifetime to avoid refresh loops for short-lived tokens). `nil` when there is no
+    /// token or the token never expires.
+    public var nextRefreshDate: Date? {
+        guard accessToken != nil, let expirationDate = accessTokenExpirationDate else {
+            return nil
+        }
+        return expirationDate.addingTimeInterval(-effectiveRefreshBuffer)
+    }
+
+    /// Whether the access token is expired or within the refresh buffer window.
+    public var needsRefresh: Bool {
+        guard let nextRefreshDate else { return false }
+        return Date() >= nextRefreshDate
+    }
+
+    /// The refresh buffer to apply, never larger than half the token's lifetime.
+    private var effectiveRefreshBuffer: TimeInterval {
+        guard let expirationDate = accessTokenExpirationDate,
+              let responseDate = lastTokenResponse?.tokenResponseDate else {
+            return Self.refreshBuffer
+        }
+        let lifetime = expirationDate.timeIntervalSince(responseDate)
+        return min(Self.refreshBuffer, max(0, lifetime / 2))
+    }
+
     // Keeps the refresh token if a new token response doesn't include one
     private var _previousRefreshToken: String?
 
@@ -62,7 +94,7 @@ public final class AuthState {
 
     private let authorizationService: AuthorizationService
 
-    public init(httpClient: HTTPClient = URLSession.shared) {
+    public init(httpClient: HTTPClient = LoggingHTTPClient()) {
         self.authorizationService = AuthorizationService(httpClient: httpClient)
     }
 
@@ -112,7 +144,7 @@ public final class AuthState {
     public func performAction(
         freshTokens action: @Sendable (String, String?) async throws -> Void
     ) async throws {
-        if !isAccessTokenExpired, let accessToken {
+        if !needsRefresh, let accessToken {
             try await action(accessToken, idToken)
             return
         }
@@ -124,6 +156,24 @@ public final class AuthState {
         }
 
         try await action(newAccessToken, tokenResponse.idToken)
+    }
+
+    /// Ensures a valid session exists, refreshing the access token if it is expired or
+    /// within the refresh buffer window. If there is no session, or the refresh fails,
+    /// the state is cleared so the app returns to a signed-out state.
+    /// - Returns: `true` if a valid session exists afterwards; otherwise `false`.
+    @discardableResult
+    public func ensureValidSession() async -> Bool {
+        guard isAuthorized else { return false }
+        guard needsRefresh else { return true }
+
+        do {
+            _ = try await coalescedRefresh()
+            return true
+        } catch {
+            clear()
+            return false
+        }
     }
 
     /// Coalesces concurrent refresh attempts into a single in-flight request.

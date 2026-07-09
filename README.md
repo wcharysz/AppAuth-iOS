@@ -38,7 +38,7 @@ Add AppAuth as a dependency in your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/openid/AppAuth-iOS.git", branch: "master")
+    .package(url: "https://github.com/openid/AppAuth-iOS.git", branch: "iOS26")
 ]
 ```
 
