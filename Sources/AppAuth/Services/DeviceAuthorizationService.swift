@@ -1,4 +1,5 @@
 import Foundation
+import HTTPTypes
 
 /// Service for performing the OAuth 2.0 Device Authorization Grant (RFC 8628).
 public actor DeviceAuthorizationService {
@@ -16,18 +17,12 @@ public actor DeviceAuthorizationService {
             throw AuthError.missingEndpoint("device_authorization_endpoint")
         }
 
-        var urlRequest = URLRequest(url: endpoint)
-        urlRequest.httpMethod = "POST"
-        urlRequest.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        urlRequest.httpBody = request.httpBody
+        var urlRequest = HTTPRequest(method: .post, url: endpoint)
+        urlRequest.headerFields[.contentType] = "application/x-www-form-urlencoded"
 
-        let (data, response) = try await httpClient.data(for: urlRequest)
+        let (data, response) = try await httpClient.data(for: urlRequest, body: request.httpBody)
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw AuthError.networkError(URLError(.badServerResponse))
-        }
-
-        guard (200..<300).contains(httpResponse.statusCode) else {
+          guard response.status.kind == .successful else {
             if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let errorCode = json["error"] as? String
             {
@@ -36,7 +31,7 @@ public actor DeviceAuthorizationService {
                     description: json["error_description"] as? String
                 )
             }
-            throw AuthError.serverError(statusCode: httpResponse.statusCode, data: data)
+            throw AuthError.serverError(statusCode: response.status.code, data: data)
         }
 
         return try DeviceAuthorizationResponse.from(data: data)

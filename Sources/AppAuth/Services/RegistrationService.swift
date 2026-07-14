@@ -1,4 +1,5 @@
 import Foundation
+import HTTPTypes
 
 /// Service for performing OpenID Connect Dynamic Client Registration (RFC 7591).
 public actor RegistrationService {
@@ -14,18 +15,13 @@ public actor RegistrationService {
             throw AuthError.missingEndpoint("registration_endpoint")
         }
 
-        var request = URLRequest(url: endpoint)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try registrationRequest.jsonBody()
+        var request = HTTPRequest(method: .post, url: endpoint)
+        request.headerFields[.contentType] = "application/json"
+        let body = try registrationRequest.jsonBody()
 
-        let (data, response) = try await httpClient.data(for: request)
+        let (data, response) = try await httpClient.data(for: request, body: body)
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw AuthError.networkError(URLError(.badServerResponse))
-        }
-
-        guard (200..<300).contains(httpResponse.statusCode) else {
+          guard response.status.kind == .successful else {
             if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let errorCode = json["error"] as? String
             {
@@ -34,7 +30,7 @@ public actor RegistrationService {
                     description: json["error_description"] as? String
                 )
             }
-            throw AuthError.serverError(statusCode: httpResponse.statusCode, data: data)
+            throw AuthError.serverError(statusCode: response.status.code, data: data)
         }
 
         return try RegistrationResponse.from(data: data)

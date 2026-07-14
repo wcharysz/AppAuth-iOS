@@ -1,4 +1,5 @@
 import Foundation
+import HTTPTypes
 
 /// Service for performing OAuth 2.0 token operations.
 public actor TokenService {
@@ -60,18 +61,12 @@ public actor TokenService {
 
     /// Performs a generic token request.
     public func performTokenRequest(_ tokenRequest: TokenRequest) async throws -> TokenResponse {
-        var request = URLRequest(url: tokenRequest.configuration.tokenEndpoint)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.httpBody = tokenRequest.httpBody
+        var request = HTTPRequest(method: .post, url: tokenRequest.configuration.tokenEndpoint)
+        request.headerFields[.contentType] = "application/x-www-form-urlencoded"
 
-        let (data, response) = try await httpClient.data(for: request)
+        let (data, response) = try await httpClient.data(for: request, body: tokenRequest.httpBody)
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw AuthError.networkError(URLError(.badServerResponse))
-        }
-
-        guard (200..<300).contains(httpResponse.statusCode) else {
+          guard response.status.kind == .successful else {
             // Try to parse OAuth error from the response body
             if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let errorCode = json["error"] as? String
@@ -81,7 +76,7 @@ public actor TokenService {
                     description: json["error_description"] as? String
                 )
             }
-            throw AuthError.serverError(statusCode: httpResponse.statusCode, data: data)
+            throw AuthError.serverError(statusCode: response.status.code, data: data)
         }
 
         return try TokenResponse.from(data: data)

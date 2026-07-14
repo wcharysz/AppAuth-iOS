@@ -15,6 +15,10 @@ let package = Package(
     targets: [
         .target(
             name: "AppAuth",
+            dependencies: [
+                .product(name: "HTTPTypes", package: "swift-http-types"),
+                .product(name: "HTTPTypesFoundation", package: "swift-http-types")
+            ],
             path: "Sources/AppAuth",
             resources: [.copy("Resources/PrivacyInfo.xcprivacy")],
             swiftSettings: [
@@ -23,7 +27,10 @@ let package = Package(
         ),
         .testTarget(
             name: "AppAuthTests",
-            dependencies: ["AppAuth"],
+            dependencies: [
+                "AppAuth",
+                .product(name: "HTTPTypes", package: "swift-http-types")
+            ],
             path: "Tests/AppAuthTests",
             swiftSettings: [
                 .swiftLanguageMode(.v6)

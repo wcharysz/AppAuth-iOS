@@ -1,4 +1,5 @@
 import Foundation
+import HTTPTypes
 
 /// Represents an OpenID Connect / OAuth 2.0 provider's endpoint configuration.
 public struct ServiceConfiguration: Sendable, Codable, Equatable {
@@ -53,17 +54,12 @@ public struct ServiceConfiguration: Sendable, Codable, Equatable {
         using httpClient: HTTPClient = LoggingHTTPClient()
     ) async throws -> ServiceConfiguration {
         let discoveryURL = issuer.appendingPathComponent(".well-known/openid-configuration")
-        let request = URLRequest(url: discoveryURL)
+        let request = HTTPRequest(url: discoveryURL)
         let (data, response) = try await httpClient.data(for: request)
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw AuthError.networkError(
-                URLError(.badServerResponse)
-            )
-        }
-        guard (200..<300).contains(httpResponse.statusCode) else {
+        guard response.status.kind == .successful else {
             throw AuthError.serverError(
-                statusCode: httpResponse.statusCode,
+                statusCode: response.status.code,
                 data: data
             )
         }

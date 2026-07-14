@@ -1,4 +1,5 @@
 import Foundation
+import HTTPTypes
 import os
 @testable import AppAuth
 
@@ -18,25 +19,29 @@ struct MockHTTPClient: HTTPClient, Sendable {
         self.headers = headers
     }
 
-    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        let url = request.url ?? URL(string: "https://mock.example.com")!
-        let response = HTTPURLResponse(
-            url: url,
-            statusCode: statusCode,
-            httpVersion: "HTTP/1.1",
-            headerFields: headers
-        )!
+    func data(for request: HTTPRequest, body: Data?) async throws -> (Data, HTTPResponse) {
+        var response = HTTPResponse(status: .init(code: statusCode))
+        for (name, value) in headers {
+            if let fieldName = HTTPField.Name(name) {
+                response.headerFields[fieldName] = value
+            }
+        }
         return (responseData, response)
     }
 }
 
 /// A mock HTTP client that records requests for verification.
 final class RecordingHTTPClient: HTTPClient, @unchecked Sendable {
-    private let lock = OSAllocatedUnfairLock<[URLRequest]>(initialState: [])
+    struct RecordedRequest: Sendable {
+        let request: HTTPRequest
+        let body: Data?
+    }
+
+    private let lock = OSAllocatedUnfairLock<[RecordedRequest]>(initialState: [])
     private let responseData: Data
     private let statusCode: Int
 
-    var recordedRequests: [URLRequest] {
+    var recordedRequests: [RecordedRequest] {
         lock.withLock { $0 }
     }
 
@@ -45,16 +50,11 @@ final class RecordingHTTPClient: HTTPClient, @unchecked Sendable {
         self.statusCode = statusCode
     }
 
-    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        lock.withLock { $0.append(request) }
+    func data(for request: HTTPRequest, body: Data?) async throws -> (Data, HTTPResponse) {
+        lock.withLock { $0.append(RecordedRequest(request: request, body: body)) }
 
-        let url = request.url ?? URL(string: "https://mock.example.com")!
-        let response = HTTPURLResponse(
-            url: url,
-            statusCode: statusCode,
-            httpVersion: "HTTP/1.1",
-            headerFields: ["Content-Type": "application/json"]
-        )!
+        var response = HTTPResponse(status: .init(code: statusCode))
+        response.headerFields[.contentType] = "application/json"
         return (responseData, response)
     }
 }

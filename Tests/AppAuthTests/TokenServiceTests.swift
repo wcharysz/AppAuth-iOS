@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import HTTPTypes
 @testable import AppAuth
 
 @Suite("TokenService Tests")
@@ -34,8 +35,8 @@ struct TokenServiceTests {
         // Verify the request was sent correctly
         let requests = recorder.recordedRequests
         #expect(requests.count == 1)
-        #expect(requests[0].httpMethod == "POST")
-        #expect(requests[0].value(forHTTPHeaderField: "Content-Type") == "application/x-www-form-urlencoded")
+        #expect(requests[0].request.method == .post)
+        #expect(requests[0].request.headerFields[.contentType] == "application/x-www-form-urlencoded")
     }
 
     @Test("Token refresh sends correct request")
@@ -55,7 +56,7 @@ struct TokenServiceTests {
 
         let requests = recorder.recordedRequests
         #expect(requests.count == 1)
-        let bodyString = String(data: requests[0].httpBody ?? Data(), encoding: .utf8) ?? ""
+        let bodyString = String(data: requests[0].body ?? Data(), encoding: .utf8) ?? ""
         #expect(bodyString.contains("grant_type=refresh_token"))
         #expect(bodyString.contains("refresh_token=old-refresh-token"))
     }
