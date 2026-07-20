@@ -154,8 +154,8 @@ public struct AuthorizationWebView: View {
 ///     authState: authState
 /// ) { result in
 ///     switch result {
-///     case .success:
-///         // User is authenticated, tokens are in authState
+///     case .success(let tokenResponse):
+///         // User is authenticated; tokenResponse contains the latest tokens
 ///     case .failure(let error):
 ///         // Handle error
 ///     }
@@ -166,7 +166,7 @@ public struct AuthorizationFlowView: View {
     private let syncRequest: AuthorizationRequest?
     private let requestProvider: (@Sendable () async throws -> AuthorizationRequest)?
     private let authState: AuthState
-    private let onCompletion: @Sendable (Result<Void, AuthError>) -> Void
+    private let onCompletion: @Sendable (Result<TokenResponse, AuthError>) -> Void
 
     /// An optional URL to load first instead of `request.authorizationURL`
     /// (e.g. a registration page that returns into the same authorize request).
@@ -192,7 +192,7 @@ public struct AuthorizationFlowView: View {
         authState: AuthState,
         prefersEphemeralWebBrowserSession: Bool = false,
         startURL: URL? = nil,
-        onCompletion: @escaping @Sendable (Result<Void, AuthError>) -> Void
+        onCompletion: @escaping @Sendable (Result<TokenResponse, AuthError>) -> Void
     ) {
         self.syncRequest = request
         self.requestProvider = nil
@@ -224,7 +224,7 @@ public struct AuthorizationFlowView: View {
         authState: AuthState,
         prefersEphemeralWebBrowserSession: Bool = false,
         startURL: URL? = nil,
-        onCompletion: @escaping @Sendable (Result<Void, AuthError>) -> Void
+        onCompletion: @escaping @Sendable (Result<TokenResponse, AuthError>) -> Void
     ) {
         self.syncRequest = nil
         self.requestProvider = request
@@ -363,7 +363,7 @@ public struct AuthorizationFlowView: View {
             let tokenResponse = try await service.performTokenRequest(tokenRequest)
             authState.update(authorizationResponse: authResponse, tokenResponse: tokenResponse)
             isExchangingToken = false
-            onCompletion(.success(()))
+            onCompletion(.success(tokenResponse))
         } catch let error as AuthError {
             authState.setError(error)
             isExchangingToken = false

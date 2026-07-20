@@ -102,6 +102,13 @@ struct LoginView: View {
                     authState: authState,
                     prefersEphemeralWebBrowserSession: true
                 ) { result in
+                    switch result {
+                    case .success(let tokenResponse):
+                        // Optional: inspect tokenResponse directly
+                        print("Access token expires in: \(tokenResponse.expiresIn ?? 0)s")
+                    case .failure(let error):
+                        print("Sign-in failed: \(error)")
+                    }
                     showLogin = false
                 }
             }
@@ -121,6 +128,13 @@ AuthorizationBrowserFlowView(
     authState: authState,
     prefersEphemeralWebBrowserSession: true
 ) { result in
+    switch result {
+    case .success(let tokenResponse):
+        // Optional: inspect tokenResponse directly
+        print("Received access token: \(tokenResponse.accessToken.prefix(8))...")
+    case .failure(let error):
+        print("Sign-in failed: \(error)")
+    }
     showLogin = false
 }
 ```
@@ -334,7 +348,12 @@ AuthorizationFlowView(
     authState: authState,
     prefersEphemeralWebBrowserSession: true  // no shared cookies
 ) { result in
-    // ...
+    switch result {
+    case .success(let tokenResponse):
+        print("Signed in with token type: \(tokenResponse.tokenType)")
+    case .failure(let error):
+        print("Sign-in failed: \(error)")
+    }
 }
 ```
 
